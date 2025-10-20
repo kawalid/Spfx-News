@@ -1,7 +1,6 @@
-/* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { ImageHelper, IImageHelperRequest } from '@microsoft/sp-image-helper';
 
-export function getOptimizedImageUrl(src?: string, width?: number, height?: number) {
+export function getOptimizedImageUrl(src?: string, width?: number, height?: number): string | undefined {
   if (!src) return undefined;
   const req: IImageHelperRequest = {
       sourceUrl: src,

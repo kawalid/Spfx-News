@@ -38,7 +38,7 @@ const HeroBbc: React.FC<{ items: NewsCard[] }> = ({ items }) => {
 
   // Build rows for the remainder: 5, then 4, then 3
   const rows: NewsCard[][] = [];
-  let tail = remainder.slice();
+  const tail = remainder.slice();
   while (tail.length) {
     if (tail.length >= 5) { rows.push(tail.splice(0, 5)); }
     else if (tail.length >= 4) { rows.push(tail.splice(0, 4)); }

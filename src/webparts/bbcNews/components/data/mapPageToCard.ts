@@ -1,8 +1,7 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { NewsCard } from '../BbcNews.types';
+import { SharePointPageItem } from './types';
 
-
-export function mapPageToCard(i: any): NewsCard {
+export function mapPageToCard(i: SharePointPageItem): NewsCard {
 const imageUrl = i?.BannerImageUrl?.Url || undefined;
 return {
 id: String(i.Id),

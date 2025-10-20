@@ -140,7 +140,7 @@ const CurateList: React.FC<Props> = ({ sp, selected, onChange, maxItems }) => {
   }, [sp, selected.join(',')]);
 
   // DnD
-  function onDragEnd(e: any) {
+  function onDragEnd(e: any): void {
     const { active, over } = e;
     if (!over || active.id === over.id) return;
     const oldIndex = selected.indexOf(active.id);
@@ -149,14 +149,14 @@ const CurateList: React.FC<Props> = ({ sp, selected, onChange, maxItems }) => {
   }
 
   // Add / Remove
-  function add(id: string) {
+  function add(id: string): void {
     if (selected.includes(id)) return;
     if (selected.length >= maxItems) return;
     onChange([...selected, id]);
     setPicker(prev => prev.filter(p => p.id !== id));
   }
 
-  function remove(id: string) {
+  function remove(id: string): void {
     onChange(selected.filter(x => x !== id));
     setPicker(prev => {
       const already = prev.some(p => p.id === id);
