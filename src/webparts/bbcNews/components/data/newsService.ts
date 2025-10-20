@@ -5,18 +5,7 @@ import '@pnp/sp/items';
 import '@pnp/sp/batching'; // ⬅️ important: enables .batched()
 import { NewsCard } from '../BbcNews.types';
 import { mapPageToCard } from './mapPageToCard';
-
-interface SharePointPageItem {
-  Id: number;
-  Title: string;
-  FileRef: string;
-  BannerImageUrl?: {
-    Url: string;
-  };
-  Description?: string;
-  FirstPublishedDate?: string;
-  PromotedState: number;
-}
+import { SharePointPageItem } from './types';
 
 export async function getNewsByIds(sp: SPFI, ids: string[]): Promise<NewsCard[]> {
   if (!ids?.length) return [];
