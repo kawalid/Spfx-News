@@ -6,6 +6,7 @@ import {
   PropertyPaneChoiceGroup,
   PropertyPaneSlider,
   PropertyPaneTextField,
+  PropertyPaneToggle,
 } from '@microsoft/sp-webpart-base';
 import * as React from 'react';
 import * as ReactDom from 'react-dom';
@@ -21,6 +22,8 @@ export interface IBbcNewsWebPartProps {
   maxItems: number;
   themeColorHex?: string;
   title?: string;
+  listName?: string;
+  usePromotedStateFilter?: boolean;
 }
 
 export default class BbcNewsWebPart extends BaseClientSideWebPart<IBbcNewsWebPartProps> {
@@ -36,6 +39,8 @@ export default class BbcNewsWebPart extends BaseClientSideWebPart<IBbcNewsWebPar
     if (!this.properties.selected) this.properties.selected = [];
     if (!this.properties.themeColorHex) this.properties.themeColorHex = '#6d28d9';
     if (!this.properties.title) this.properties.title = 'News';
+    if (!this.properties.listName) this.properties.listName = 'Site Pages';
+    if (this.properties.usePromotedStateFilter === undefined) this.properties.usePromotedStateFilter = true;
 
     // Tailwind via CDN (once)
     if (!this._cssLoaded) {
@@ -54,6 +59,8 @@ export default class BbcNewsWebPart extends BaseClientSideWebPart<IBbcNewsWebPar
       selected: this.properties.selected,
       maxItems: this.properties.maxItems,
       themeColorHex: this.properties.themeColorHex,
+      listName: this.properties.listName,
+      usePromotedStateFilter: this.properties.usePromotedStateFilter,
 
       // Title wiring (PnP WebPartTitle)
       title: this.properties.title,
@@ -97,6 +104,20 @@ export default class BbcNewsWebPart extends BaseClientSideWebPart<IBbcNewsWebPar
         {
           header: { description: 'News settings' },
           groups: [
+            {
+              groupName: 'Data Source',
+              groupFields: [
+                PropertyPaneTextField('listName', {
+                  label: 'List name',
+                  description: 'Name of the SharePoint list to fetch items from (default: Site Pages)',
+                }),
+                PropertyPaneToggle('usePromotedStateFilter', {
+                  label: 'Filter by PromotedState',
+                  onText: 'Yes - Only show news items (PromotedState = 2)',
+                  offText: 'No - Show all items from the list',
+                }),
+              ],
+            },
             {
               groupName: 'Layout & Appearance',
               groupFields: [

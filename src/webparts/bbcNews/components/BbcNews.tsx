@@ -33,8 +33,8 @@ const BbcNews: React.FC<BbcNewsProps> = (props) => {
     (async () => {
       try {
         const data = props.selected?.length
-          ? await getNewsByIds(props.sp, props.selected)
-          : await getLatestNews(props.sp, props.maxItems);
+          ? await getNewsByIds(props.sp, props.selected, props.listName, props.usePromotedStateFilter)
+          : await getLatestNews(props.sp, props.maxItems, props.listName, props.usePromotedStateFilter);
 
         if (!active) return;
         setItems(data ?? []);
@@ -47,7 +47,7 @@ const BbcNews: React.FC<BbcNewsProps> = (props) => {
     })();
 
     return () => { active = false; };
-  }, [props.sp, props.selected, props.maxItems]);
+  }, [props.sp, props.selected, props.maxItems, props.listName, props.usePromotedStateFilter]);
 
   // Choose standard layouts; hero-visual needs themeColorHex
   const StdLayout =
@@ -114,6 +114,8 @@ const BbcNews: React.FC<BbcNewsProps> = (props) => {
                 selected={props.selected}
                 onChange={props.onSelectionChange}
                 maxItems={props.maxItems}
+                listName={props.listName}
+                usePromotedStateFilter={props.usePromotedStateFilter}
               />
             </div>
           )}

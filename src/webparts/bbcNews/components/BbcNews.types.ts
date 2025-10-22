@@ -25,6 +25,8 @@ layout: LayoutVariant;
 selected: string[];
 maxItems: number;
 themeColorHex?: string;
+listName?: string;
+usePromotedStateFilter?: boolean;
 onSelectionChange: (ids: string[]) => void;
  onLayoutChange?: (layout: LayoutVariant) => void;
 

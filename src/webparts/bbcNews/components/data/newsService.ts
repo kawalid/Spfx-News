@@ -10,31 +10,49 @@ import { NewsCard } from '../BbcNews.types';
 import { mapPageToCard } from './mapPageToCard';
 
 
-export async function getNewsByIds(sp: SPFI, ids: string[]): Promise<NewsCard[]> {
+export async function getNewsByIds(sp: SPFI, ids: string[], listName: string = 'Site Pages', usePromotedStateFilter: boolean = true): Promise<NewsCard[]> {
   if (!ids?.length) return [];
 
   const [batchedWeb, execute] = sp.web.batched(); // using your working batching pattern
   const results: any[] = new Array(ids.length);
 
+  // Build select fields based on filter configuration
+  const selectFields = usePromotedStateFilter
+    ? 'Id,Title,FileRef,BannerImageUrl,Description,FirstPublishedDate,PromotedState'
+    : 'Id,Title,FileRef,BannerImageUrl,Description,FirstPublishedDate';
+
   ids.forEach((id, idx) => {
-    batchedWeb.lists.getByTitle('Site Pages').items.getById(Number(id))
-      .select('Id,Title,FileRef,BannerImageUrl,Description,FirstPublishedDate,PromotedState')()
+    batchedWeb.lists.getByTitle(listName).items.getById(Number(id))
+      .select(selectFields)()
       .then(i => results[idx] = i)
       .catch(() => results[idx] = null);
   });
 
   await execute();
 
-  // keep only PromotedState == 2
-  return results
-    .filter((i: any) => i && i.PromotedState === 2)
-    .map(mapPageToCard);
+  // Filter by PromotedState only if enabled
+  const filtered = usePromotedStateFilter
+    ? results.filter((i: any) => i && i.PromotedState === 2)
+    : results.filter((i: any) => i);
+
+  return filtered.map(mapPageToCard);
 }
 
-export async function getLatestNews(sp: SPFI, top: number): Promise<NewsCard[]> {
-  const items = await sp.web.lists.getByTitle('Site Pages').items
-    .select('Id,Title,FileRef,BannerImageUrl,Description,FirstPublishedDate,PromotedState')
-    .filter('PromotedState eq 2')               // ⬅️ news only
+export async function getLatestNews(sp: SPFI, top: number, listName: string = 'Site Pages', usePromotedStateFilter: boolean = true): Promise<NewsCard[]> {
+  // Build select fields based on filter configuration
+  const selectFields = usePromotedStateFilter
+    ? 'Id,Title,FileRef,BannerImageUrl,Description,FirstPublishedDate,PromotedState'
+    : 'Id,Title,FileRef,BannerImageUrl,Description,FirstPublishedDate';
+
+  let query = sp.web.lists.getByTitle(listName).items
+    .select(selectFields);
+
+  // Apply PromotedState filter only if enabled
+  if (usePromotedStateFilter) {
+    query = query.filter('PromotedState eq 2');
+  }
+
+  const items = await query
     .orderBy('FirstPublishedDate', false)
     .top(top)();
 
