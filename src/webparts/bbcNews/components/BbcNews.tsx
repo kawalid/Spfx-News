@@ -32,9 +32,17 @@ const BbcNews: React.FC<BbcNewsProps> = (props) => {
 
     (async () => {
       try {
+        const fieldMappings = {
+          titleField: props.titleField,
+          descriptionField: props.descriptionField,
+          imageField: props.imageField,
+          dateField: props.dateField,
+          urlField: props.urlField,
+        };
+        
         const data = props.selected?.length
-          ? await getNewsByIds(props.sp, props.selected)
-          : await getLatestNews(props.sp, props.maxItems);
+          ? await getNewsByIds(props.sp, props.selected, props.listName, props.usePromotedStateFilter, fieldMappings)
+          : await getLatestNews(props.sp, props.maxItems, props.listName, props.usePromotedStateFilter, fieldMappings);
 
         if (!active) return;
         setItems(data ?? []);
@@ -47,7 +55,7 @@ const BbcNews: React.FC<BbcNewsProps> = (props) => {
     })();
 
     return () => { active = false; };
-  }, [props.sp, props.selected, props.maxItems]);
+  }, [props.sp, props.selected, props.maxItems, props.listName, props.usePromotedStateFilter, props.titleField, props.descriptionField, props.imageField, props.dateField, props.urlField]);
 
   // Choose standard layouts; hero-visual needs themeColorHex
   const StdLayout =
@@ -114,6 +122,8 @@ const BbcNews: React.FC<BbcNewsProps> = (props) => {
                 selected={props.selected}
                 onChange={props.onSelectionChange}
                 maxItems={props.maxItems}
+                listName={props.listName}
+                usePromotedStateFilter={props.usePromotedStateFilter}
               />
             </div>
           )}

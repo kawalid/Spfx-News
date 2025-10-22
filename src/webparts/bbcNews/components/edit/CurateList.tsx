@@ -19,6 +19,8 @@ interface Props {
   selected: string[];
   onChange: (ids: string[]) => void;
   maxItems: number;
+  listName?: string;
+  usePromotedStateFilter?: boolean;
 }
 
 type PickerItem = { id: string; title: string };
@@ -69,7 +71,7 @@ const SectionHeader: React.FC<{
   </div>
 );
 
-const CurateList: React.FC<Props> = ({ sp, selected, onChange, maxItems }) => {
+const CurateList: React.FC<Props> = ({ sp, selected, onChange, maxItems, listName = 'Site Pages', usePromotedStateFilter = true }) => {
   const sensors = useSensors(useSensor(PointerSensor));
 
   const [titles, setTitles] = React.useState<Record<string, string>>({});
@@ -80,14 +82,25 @@ const CurateList: React.FC<Props> = ({ sp, selected, onChange, maxItems }) => {
   const [showSelected, setShowSelected] = React.useState(true);
   const [showAdd, setShowAdd] = React.useState(false); // start collapsed to show more of the layout
 
-  // load recent (PromotedState eq 2)
+  // load recent (with optional PromotedState filter)
   React.useEffect(() => {
     let mounted = true;
     (async () => {
-      const items = await sp.web.lists
-        .getByTitle('Site Pages')
-        .items.select('Id,Title,FirstPublishedDate,PromotedState')
-        .filter('PromotedState eq 2')
+      // Build select fields based on filter configuration
+      const selectFields = usePromotedStateFilter
+        ? 'Id,Title,FirstPublishedDate,PromotedState'
+        : 'Id,Title,FirstPublishedDate';
+
+      let query = sp.web.lists
+        .getByTitle(listName)
+        .items.select(selectFields);
+
+      // Apply PromotedState filter only if enabled
+      if (usePromotedStateFilter) {
+        query = query.filter('PromotedState eq 2');
+      }
+
+      const items = await query
         .orderBy('FirstPublishedDate', false)
         .top(50)();
 
@@ -105,7 +118,7 @@ const CurateList: React.FC<Props> = ({ sp, selected, onChange, maxItems }) => {
       setPicker(recent.filter(r => !selected.includes(r.id)));
     })();
     return () => { mounted = false; };
-  }, [sp]);
+  }, [sp, listName, usePromotedStateFilter]);
 
   // when selected changes, batch-load missing titles and refilter picker
   React.useEffect(() => {
@@ -120,7 +133,7 @@ const CurateList: React.FC<Props> = ({ sp, selected, onChange, maxItems }) => {
       const buf: any[] = new Array(missing.length);
 
       missing.forEach((id, idx) => {
-        web.lists.getByTitle('Site Pages').items.getById(Number(id))
+        web.lists.getByTitle(listName).items.getById(Number(id))
           .select('Id,Title')()
           .then(i => { buf[idx] = i; })
           .catch(() => { buf[idx] = null; });
