@@ -27,6 +27,12 @@ maxItems: number;
 themeColorHex?: string;
 listName?: string;
 usePromotedStateFilter?: boolean;
+// Field mappings
+titleField?: string;
+descriptionField?: string;
+imageField?: string;
+dateField?: string;
+urlField?: string;
 onSelectionChange: (ids: string[]) => void;
  onLayoutChange?: (layout: LayoutVariant) => void;
 
