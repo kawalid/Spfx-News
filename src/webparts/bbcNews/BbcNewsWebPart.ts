@@ -7,10 +7,14 @@ import {
   PropertyPaneSlider,
   PropertyPaneTextField,
   PropertyPaneToggle,
+  PropertyPaneDropdown,
+  IPropertyPaneDropdownOption,
 } from '@microsoft/sp-webpart-base';
 import * as React from 'react';
 import * as ReactDom from 'react-dom';
 import { spfi, SPFx, SPFI } from '@pnp/sp';
+import '@pnp/sp/webs';
+import '@pnp/sp/lists';
 import { SPComponentLoader } from '@microsoft/sp-loader';
 
 import BbcNews from './components/BbcNews';
@@ -29,6 +33,8 @@ export interface IBbcNewsWebPartProps {
 export default class BbcNewsWebPart extends BaseClientSideWebPart<IBbcNewsWebPartProps> {
   private _sp!: SPFI;
   private _cssLoaded = false;
+  private _listsDropdownOptions: IPropertyPaneDropdownOption[] = [];
+  private _listsLoaded = false;
 
   public async onInit(): Promise<void> {
     this._sp = spfi().using(SPFx(this.context));
@@ -98,6 +104,46 @@ export default class BbcNewsWebPart extends BaseClientSideWebPart<IBbcNewsWebPar
     return Version.parse('1.0');
   }
 
+  private async loadLists(): Promise<void> {
+    if (this._listsLoaded) return;
+
+    try {
+      const lists = await this._sp.web.lists
+        .filter('Hidden eq false and BaseTemplate eq 100')
+        .select('Title')
+        .top(100)();
+
+      this._listsDropdownOptions = lists.map(list => ({
+        key: list.Title,
+        text: list.Title
+      }));
+
+      this._listsLoaded = true;
+    } catch (error) {
+      console.error('Error loading lists:', error);
+      this._listsDropdownOptions = [
+        { key: 'Site Pages', text: 'Site Pages' },
+        { key: 'Events', text: 'Events' }
+      ];
+    }
+  }
+
+  protected async onPropertyPaneConfigurationStart(): Promise<void> {
+    await this.loadLists();
+    this.context.propertyPane.refresh();
+  }
+
+  /* eslint-disable @typescript-eslint/no-explicit-any */
+  protected onPropertyPaneFieldChanged(propertyPath: string, oldValue: any, newValue: any): void {
+    super.onPropertyPaneFieldChanged(propertyPath, oldValue, newValue);
+    
+    // Refresh the page when list name or filter changes
+    if (propertyPath === 'listName' || propertyPath === 'usePromotedStateFilter') {
+      this.render();
+    }
+  }
+  /* eslint-enable @typescript-eslint/no-explicit-any */
+
   protected getPropertyPaneConfiguration(): IPropertyPaneConfiguration {
     return {
       pages: [
@@ -107,9 +153,10 @@ export default class BbcNewsWebPart extends BaseClientSideWebPart<IBbcNewsWebPar
             {
               groupName: 'Data Source',
               groupFields: [
-                PropertyPaneTextField('listName', {
+                PropertyPaneDropdown('listName', {
                   label: 'List name',
-                  description: 'Name of the SharePoint list to fetch items from (default: Site Pages)',
+                  options: this._listsDropdownOptions,
+                  selectedKey: this.properties.listName || 'Site Pages',
                 }),
                 PropertyPaneToggle('usePromotedStateFilter', {
                   label: 'Filter by PromotedState',
