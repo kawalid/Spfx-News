@@ -6,6 +6,7 @@ import {
   PropertyPaneChoiceGroup,
   PropertyPaneSlider,
   PropertyPaneTextField,
+  PropertyPaneToggle,
 } from '@microsoft/sp-webpart-base';
 import * as React from 'react';
 import * as ReactDom from 'react-dom';
@@ -21,6 +22,17 @@ export interface IBbcNewsWebPartProps {
   maxItems: number;
   themeColorHex?: string;
   title?: string;
+  
+  // Configurable data source
+  listName?: string;
+  titleField?: string;
+  imageField?: string;
+  descriptionField?: string;
+  dateField?: string;
+  filterField?: string;
+  filterValue?: string;
+  sortField?: string;
+  sortDescending?: boolean;
 }
 
 export default class BbcNewsWebPart extends BaseClientSideWebPart<IBbcNewsWebPartProps> {
@@ -36,6 +48,17 @@ export default class BbcNewsWebPart extends BaseClientSideWebPart<IBbcNewsWebPar
     if (!this.properties.selected) this.properties.selected = [];
     if (!this.properties.themeColorHex) this.properties.themeColorHex = '#6d28d9';
     if (!this.properties.title) this.properties.title = 'News';
+    
+    // Data source defaults
+    if (!this.properties.listName) this.properties.listName = 'Site Pages';
+    if (!this.properties.titleField) this.properties.titleField = 'Title';
+    if (!this.properties.imageField) this.properties.imageField = 'BannerImageUrl';
+    if (!this.properties.descriptionField) this.properties.descriptionField = 'Description';
+    if (!this.properties.dateField) this.properties.dateField = 'FirstPublishedDate';
+    if (!this.properties.filterField) this.properties.filterField = 'PromotedState';
+    if (!this.properties.filterValue) this.properties.filterValue = '2';
+    if (!this.properties.sortField) this.properties.sortField = 'FirstPublishedDate';
+    if (this.properties.sortDescending === undefined) this.properties.sortDescending = true;
 
     // Tailwind via CDN (once)
     if (!this._cssLoaded) {
@@ -54,6 +77,17 @@ export default class BbcNewsWebPart extends BaseClientSideWebPart<IBbcNewsWebPar
       selected: this.properties.selected,
       maxItems: this.properties.maxItems,
       themeColorHex: this.properties.themeColorHex,
+      
+      // Data source configuration
+      listName: this.properties.listName,
+      titleField: this.properties.titleField,
+      imageField: this.properties.imageField,
+      descriptionField: this.properties.descriptionField,
+      dateField: this.properties.dateField,
+      filterField: this.properties.filterField,
+      filterValue: this.properties.filterValue,
+      sortField: this.properties.sortField,
+      sortDescending: this.properties.sortDescending,
 
       // Title wiring (PnP WebPartTitle)
       title: this.properties.title,
@@ -124,6 +158,53 @@ export default class BbcNewsWebPart extends BaseClientSideWebPart<IBbcNewsWebPar
                   max: 20,
                   step: 1,
                   showValue: true,
+                }),
+              ],
+            },
+            {
+              groupName: 'Data Source',
+              groupFields: [
+                PropertyPaneTextField('listName', {
+                  label: 'List/Library name',
+                  description: 'Name of the SharePoint list or library to fetch items from (e.g., "Site Pages", "News", "Documents")',
+                }),
+                PropertyPaneTextField('filterField', {
+                  label: 'Filter field',
+                  description: 'Field to filter by (leave empty for no filter)',
+                }),
+                PropertyPaneTextField('filterValue', {
+                  label: 'Filter value',
+                  description: 'Value to filter by (e.g., "2" for PromotedState)',
+                }),
+                PropertyPaneTextField('sortField', {
+                  label: 'Sort field',
+                  description: 'Field to sort by (e.g., "FirstPublishedDate", "Created", "Modified")',
+                }),
+                PropertyPaneToggle('sortDescending', {
+                  label: 'Sort descending',
+                  onText: 'Descending (newest first)',
+                  offText: 'Ascending (oldest first)',
+                }),
+              ],
+            },
+            {
+              groupName: 'Field Mapping',
+              groupFields: [
+                PropertyPaneTextField('titleField', {
+                  label: 'Title field',
+                  description: 'Field to use for item title (default: "Title")',
+                }),
+                PropertyPaneTextField('imageField', {
+                  label: 'Image field',
+                  description: 'Field to use for item image (default: "BannerImageUrl")',
+                }),
+                PropertyPaneTextField('descriptionField', {
+                  label: 'Description field',
+                  description: 'Field to use for item description (default: "Description")',
+                }),
+                PropertyPaneTextField('dateField', {
+                  label: 'Date field',
+                  description: 'Field to use for item date (default: "FirstPublishedDate")',
                 }),
               ],
             },
