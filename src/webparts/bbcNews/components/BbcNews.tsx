@@ -5,7 +5,7 @@ import { WebPartTitle } from '@pnp/spfx-controls-react/lib/WebPartTitle';
 import AdaptiveGrid from './layouts/AdaptiveGrid';
 import { BbcNewsProps, NewsCard } from './BbcNews.types';
 import { useIsEditMode } from './hooks/useIsEditMode';
-import { getNewsByIds, getLatestNews } from './data/newsService';
+import { getNewsByIds, getLatestNews, DataSourceConfig } from './data/newsService';
 
 import DesignToolbar from './edit/DesignToolbar';
 import CuratePanel from './edit/CuratePanel';
@@ -25,6 +25,20 @@ const BbcNews: React.FC<BbcNewsProps> = (props) => {
 
   // Collapse the curation UI to preview layout changes quickly
   const [showCurator, setShowCurator] = React.useState<boolean>(true);
+  
+  // Build data source config from props
+  const config = React.useMemo<DataSourceConfig>(() => ({
+    listName: props.listName || 'Site Pages',
+    titleField: props.titleField || 'Title',
+    imageField: props.imageField || 'BannerImageUrl',
+    descriptionField: props.descriptionField || 'Description',
+    dateField: props.dateField || 'FirstPublishedDate',
+    filterField: props.filterField || 'PromotedState',
+    filterValue: props.filterValue || '2',
+    sortField: props.sortField || 'FirstPublishedDate',
+    sortDescending: props.sortDescending !== undefined ? props.sortDescending : true,
+  }), [props.listName, props.titleField, props.imageField, props.descriptionField, 
+       props.dateField, props.filterField, props.filterValue, props.sortField, props.sortDescending]);
 
   React.useEffect(() => {
     let active = true;
@@ -33,8 +47,8 @@ const BbcNews: React.FC<BbcNewsProps> = (props) => {
     (async () => {
       try {
         const data = props.selected?.length
-          ? await getNewsByIds(props.sp, props.selected)
-          : await getLatestNews(props.sp, props.maxItems);
+          ? await getNewsByIds(props.sp, props.selected, config)
+          : await getLatestNews(props.sp, props.maxItems, config);
 
         if (!active) return;
         setItems(data ?? []);
@@ -47,7 +61,7 @@ const BbcNews: React.FC<BbcNewsProps> = (props) => {
     })();
 
     return () => { active = false; };
-  }, [props.sp, props.selected, props.maxItems]);
+  }, [props.sp, props.selected, props.maxItems, config]);
 
   // Choose standard layouts; hero-visual needs themeColorHex
   const StdLayout =
@@ -114,6 +128,7 @@ const BbcNews: React.FC<BbcNewsProps> = (props) => {
                 selected={props.selected}
                 onChange={props.onSelectionChange}
                 maxItems={props.maxItems}
+                config={config}
               />
             </div>
           )}

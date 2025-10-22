@@ -4,6 +4,8 @@
 This project explores what happens when an experienced SharePoint developer partners with AI to build a complete, production-ready SPFx component.  
 The goal: recreate a **BBC-style news layout** — accessible, dynamic, and editable — entirely through AI-assisted development.
 
+**🎯 Now enhanced with configurable data sources!** Use this webpart with any SharePoint list or library, not just news pages.
+
 ---
 
 ## 🧠 Summary
@@ -19,7 +21,8 @@ Each iteration refined functionality, accessibility, and maintainability until w
 ### 🧩 SPFx + PnPjs Wiring
 - Correct `spfi().using(SPFx(...))` setup  
 - Batched list queries via `sp.web.batched()`  
-- Filter logic: `PromotedState = 2` (published news)  
+- **Configurable data sources with field mapping**
+- **Custom filtering and sorting options**
 - Fixed type errors, `ISPQueryable` mismatches, and `sp.web` injection  
 
 ### ⚙️ Build & Runtime Fixes
@@ -64,22 +67,103 @@ Each iteration refined functionality, accessibility, and maintainability until w
 - Dark overlay with white text for accessibility  
 - Full-card click action + keyboard activation  
 
+### 🎯 Generic & Reusable Features
+- **Configurable Data Source**: Select any SharePoint list or library as the source
+- **Field Mapping**: Map your own fields for title, image, description, and date
+- **Custom Filtering**: Apply filters on any field (not just news pages)
+- **Flexible Sorting**: Sort by any field in ascending or descending order
+- Works with Site Pages, custom lists, document libraries, and more!  
+
 ---
 
 ## 🧩 What you get
 
-A **ready-to-use SPFx News Webpart** you can drop into your SharePoint tenant.
+A **ready-to-use SPFx Webpart** you can drop into your SharePoint tenant and configure for any list or library.
 
 **In edit mode:**  
-Select up to **20 news posts**, reorder them, and preview instantly.  
+- **Select any SharePoint list or library** as the data source
+- **Configure field mappings** for your specific content type
+- **Set custom filters and sorting** options
+- Select up to **20 items**, reorder them, and preview instantly  
 
 **In view mode:**  
-Renders a **BBC-style accessible newsfeed**:
+Renders a **BBC-style accessible layout** with your content:
 - 5-item Hero strip  
 - 2 rows of 5 compact cards  
 - 5-item Hero strip  
 
 Fully responsive, keyboard-navigable, and WCAG 2.2 AA-aligned.
+
+---
+
+## ⚙️ Configuration Options
+
+### Data Source Settings
+Configure the webpart to work with any SharePoint list:
+
+- **List/Library name**: Choose any list (e.g., "Site Pages", "News", "Documents", "Custom List")
+- **Filter field**: Optional field to filter by (e.g., "PromotedState", "Status", "Category")
+- **Filter value**: Value to match (e.g., "2" for news, "Published" for status)
+- **Sort field**: Field to sort by (e.g., "FirstPublishedDate", "Created", "Modified")
+- **Sort order**: Ascending or descending
+
+### Field Mapping
+Map your list fields to the webpart display:
+
+- **Title field**: Field containing the item title (default: "Title")
+- **Image field**: Field containing the image URL (default: "BannerImageUrl")
+- **Description field**: Field containing the description (default: "Description")
+- **Date field**: Field containing the date (default: "FirstPublishedDate")
+
+### Layout & Appearance
+- **Web part title**: Customizable title
+- **Layout**: Choose from 5 different layout styles
+- **Theme color**: Customize the accent color
+- **Max items**: Control how many items to display (4-20)
+
+---
+
+## 💡 Usage Examples
+
+### Example 1: Standard SharePoint News
+Perfect for displaying published news articles from Site Pages:
+- **List name**: `Site Pages`
+- **Filter field**: `PromotedState`
+- **Filter value**: `2`
+- **Sort field**: `FirstPublishedDate`
+- **Sort descending**: ✓ (checked)
+
+### Example 2: Custom Announcements List
+Display items from a custom announcements list:
+- **List name**: `Announcements`
+- **Title field**: `Title`
+- **Image field**: `AnnouncementImage`
+- **Description field**: `Body`
+- **Date field**: `Created`
+- **Filter field**: `Status`
+- **Filter value**: `Published`
+- **Sort field**: `Created`
+
+### Example 3: Document Library Highlights
+Showcase featured documents:
+- **List name**: `Documents`
+- **Title field**: `Title`
+- **Image field**: `ThumbnailUrl`
+- **Description field**: `Comments`
+- **Date field**: `Modified`
+- **Filter field**: `Featured`
+- **Filter value**: `Yes`
+- **Sort field**: `Modified`
+
+### Example 4: Events Calendar
+Display upcoming or past events:
+- **List name**: `Events`
+- **Title field**: `Title`
+- **Image field**: `EventImage`
+- **Description field**: `Description`
+- **Date field**: `EventDate`
+- **Sort field**: `EventDate`
+- **Sort descending**: (unchecked for upcoming events)
 
 ---
 

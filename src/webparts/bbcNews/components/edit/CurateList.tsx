@@ -13,12 +13,14 @@ import {
   arrayMove, SortableContext, verticalListSortingStrategy, useSortable,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import { DataSourceConfig } from '../data/newsService';
 
 interface Props {
   sp: SPFI;
   selected: string[];
   onChange: (ids: string[]) => void;
   maxItems: number;
+  config: DataSourceConfig;
 }
 
 type PickerItem = { id: string; title: string };
@@ -69,7 +71,7 @@ const SectionHeader: React.FC<{
   </div>
 );
 
-const CurateList: React.FC<Props> = ({ sp, selected, onChange, maxItems }) => {
+const CurateList: React.FC<Props> = ({ sp, selected, onChange, maxItems, config }) => {
   const sensors = useSensors(useSensor(PointerSensor));
 
   const [titles, setTitles] = React.useState<Record<string, string>>({});
@@ -80,18 +82,32 @@ const CurateList: React.FC<Props> = ({ sp, selected, onChange, maxItems }) => {
   const [showSelected, setShowSelected] = React.useState(true);
   const [showAdd, setShowAdd] = React.useState(false); // start collapsed to show more of the layout
 
-  // load recent (PromotedState eq 2)
+  // load recent items using configurable list and fields
   React.useEffect(() => {
     let mounted = true;
     (async () => {
-      const items = await sp.web.lists
-        .getByTitle('Site Pages')
-        .items.select('Id,Title,FirstPublishedDate,PromotedState')
-        .filter('PromotedState eq 2')
-        .orderBy('FirstPublishedDate', false)
-        .top(50)();
+      const fields = ['Id', config.titleField, config.dateField];
+      if (config.filterField) fields.push(config.filterField);
+      
+      let query = sp.web.lists
+        .getByTitle(config.listName)
+        .items.select(...fields);
+        
+      // Apply filter if configured
+      if (config.filterField && config.filterValue) {
+        query = query.filter(`${config.filterField} eq ${config.filterValue}`);
+      }
+      
+      query = query
+        .orderBy(config.sortField, config.sortDescending)
+        .top(50);
 
-      const recent: PickerItem[] = items.map((i: any) => ({ id: String(i.Id), title: i.Title }));
+      const items = await query();
+
+      const recent: PickerItem[] = items.map((i: any) => ({ 
+        id: String(i.Id), 
+        title: i[config.titleField] || `Item ${i.Id}` 
+      }));
       if (!mounted) return;
 
       recentAllRef.current = recent;
@@ -105,7 +121,7 @@ const CurateList: React.FC<Props> = ({ sp, selected, onChange, maxItems }) => {
       setPicker(recent.filter(r => !selected.includes(r.id)));
     })();
     return () => { mounted = false; };
-  }, [sp]);
+  }, [sp, config]);
 
   // when selected changes, batch-load missing titles and refilter picker
   React.useEffect(() => {
@@ -120,8 +136,8 @@ const CurateList: React.FC<Props> = ({ sp, selected, onChange, maxItems }) => {
       const buf: any[] = new Array(missing.length);
 
       missing.forEach((id, idx) => {
-        web.lists.getByTitle('Site Pages').items.getById(Number(id))
-          .select('Id,Title')()
+        web.lists.getByTitle(config.listName).items.getById(Number(id))
+          .select('Id', config.titleField)()
           .then(i => { buf[idx] = i; })
           .catch(() => { buf[idx] = null; });
       });
@@ -131,13 +147,15 @@ const CurateList: React.FC<Props> = ({ sp, selected, onChange, maxItems }) => {
 
       setTitles(prev => {
         const next = { ...prev };
-        buf.filter(Boolean).forEach((i: any) => { next[String(i.Id)] = i.Title; });
+        buf.filter(Boolean).forEach((i: any) => { 
+          next[String(i.Id)] = i[config.titleField] || `Item ${i.Id}`; 
+        });
         return next;
       });
     })();
 
     return () => { mounted = false; };
-  }, [sp, selected.join(',')]);
+  }, [sp, selected.join(','), config]);
 
   // DnD
   function onDragEnd(e: any) {

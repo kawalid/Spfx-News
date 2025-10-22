@@ -32,4 +32,15 @@ onSelectionChange: (ids: string[]) => void;
   openPropertyPane?: () => void;
  onTitleChange?: (title: string) => void;  
   title?: string;
+  
+  // Configurable data source
+  listName?: string;
+  titleField?: string;
+  imageField?: string;
+  descriptionField?: string;
+  dateField?: string;
+  filterField?: string;
+  filterValue?: string;
+  sortField?: string;
+  sortDescending?: boolean;
 }
